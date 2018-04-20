@@ -153,7 +153,7 @@ static int DoVdex2dex(int argc, char** argv) {
   std::unique_ptr<VdexFile> in_vdex = VdexFile::Open(in_vdex_fn,
                                                      /* writable */ false,
                                                      /* low_4gb */ false,
-                                                     /* unquicken */ true,
+                                                     /* unquicken */ false,
                                                      &error_msg);
   if (in_vdex == nullptr) {
     LOG(ERROR) << "Failed to open vdex file: " << error_msg;
@@ -172,7 +172,7 @@ static int DoVdex2dex(int argc, char** argv) {
   }
 
   std::unique_ptr<const DexFile> dex(std::move(dex_files[0]));
-
+  in_vdex->FullyUnquickenDexFile(*dex, *dex);
   std::unique_ptr<File> out_dex_f(OS::CreateEmptyFile(out_dex_fn));
   if (out_dex_f == nullptr) {
     LOG(ERROR) << "Failed to open output file";
