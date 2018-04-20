@@ -153,7 +153,7 @@ static int DoVdex2dex(int argc, char** argv) {
   std::unique_ptr<VdexFile> in_vdex = VdexFile::Open(in_vdex_fn,
                                                      /* writable */ false,
                                                      /* low_4gb */ false,
-                                                     /* unquicken */ false,
+                                                     /* unquicken */ true,
                                                      &error_msg);
   if (in_vdex == nullptr) {
     LOG(ERROR) << "Failed to open vdex file: " << error_msg;
