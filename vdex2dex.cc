@@ -33,6 +33,7 @@
 #include <sys/utsname.h>
 #endif
 
+#include "android-base/logging.h"
 #include "android-base/stringprintf.h"
 #include "android-base/strings.h"
 
@@ -41,51 +42,50 @@
 #include "art_method-inl.h"
 #include "base/callee_save_type.h"
 #include "base/dumpable.h"
+#include "base/file_utils.h"
+#include "base/leb128.h"
 #include "base/macros.h"
+#include "base/mutex.h"
+#include "base/os.h"
 #include "base/scoped_flock.h"
 #include "base/stl_util.h"
 #include "base/stringpiece.h"
 #include "base/time_utils.h"
 #include "base/timing_logger.h"
 #include "base/unix_file/fd_file.h"
+#include "base/utils.h"
 #include "class_linker.h"
 #include "class_loader_context.h"
+#include "cmdline_parser.h"
 #include "compiler.h"
 #include "compiler_callbacks.h"
 #include "debug/elf_debug_writer.h"
 #include "debug/method_debug_info.h"
+#include "dexlayout.h"
+#include "dex/art_dex_file_loader.h"
+#include "dex/descriptors_names.h"
+#include "dex/dex_file-inl.h"
 #include "dex/quick_compiler_callbacks.h"
 #include "dex/verification_results.h"
-#include "dex_file-inl.h"
 #include "driver/compiler_driver.h"
 #include "driver/compiler_options.h"
+#include "driver/compiler_options_map-inl.h"
 #include "elf_file.h"
-#include "elf_writer.h"
-#include "elf_writer_quick.h"
 #include "gc/space/image_space.h"
 #include "gc/space/space-inl.h"
 #include "gc/verification.h"
-#include "image_writer.h"
 #include "interpreter/unstarted_runtime.h"
 #include "java_vm_ext.h"
 #include "jit/profile_compilation_info.h"
-#include "leb128.h"
-#include "linker/buffered_output_stream.h"
-#include "linker/file_output_stream.h"
-#include "linker/multi_oat_relative_patcher.h"
 #include "mirror/class-inl.h"
 #include "mirror/class_loader.h"
 #include "mirror/object-inl.h"
 #include "mirror/object_array-inl.h"
-#include "nativehelper/ScopedLocalRef.h"
 #include "oat_file.h"
 #include "oat_file_assistant.h"
-#include "oat_writer.h"
-#include "os.h"
 #include "runtime.h"
 #include "runtime_options.h"
 #include "scoped_thread_state_change-inl.h"
-#include "utils.h"
 #include "vdex_file.h"
 #include "verifier/verifier_deps.h"
 #include "well_known_classes.h"
@@ -169,10 +169,12 @@ static int DoVdex2dex(int argc, char** argv) {
   if (dex_files.size() < 1) {
     LOG(ERROR) << "Vdex file contains no dex files";
     return 1;
+  } else if (dex_files.size() > 1) {
+    LOG(WARNING) << "Vdex file contains " << dex_files.size() << " files, only handling first";
   }
 
   std::unique_ptr<const DexFile> dex(std::move(dex_files[0]));
-  in_vdex->FullyUnquickenDexFile(*dex, *dex);
+  in_vdex->UnquickenDexFile(*dex, *dex, true);
   std::unique_ptr<File> out_dex_f(OS::CreateEmptyFile(out_dex_fn));
   if (out_dex_f == nullptr) {
     LOG(ERROR) << "Failed to open output file";

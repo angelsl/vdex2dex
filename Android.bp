@@ -32,9 +32,11 @@ art_cc_binary {
     name: "vdex2dex",
     defaults: ["vdex2dex-defaults"],
     shared_libs: [
-        "libart",
         "libart-compiler",
         "libart-disassembler",
+        "libart-dexlayout",
+        "libart",
+        "libdexfile",
         "libbase",
     ],
 }
@@ -49,6 +51,8 @@ art_cc_binary {
         "libartd",
         "libartd-compiler",
         "libartd-disassembler",
+        "libartd-dexlayout",
+        "libdexfiled",
         "libbase",
     ],
 }
@@ -71,9 +75,11 @@ art_cc_binary {
         "-z muldefs",
     ],
     static_libs: [
-        "libart",
         "libart-compiler",
         "libart-disassembler",
+        "libart-dexlayout",
+        "libart",
+        "libdexfile",
         "libvixl-arm",
         "libvixl-arm64",
     ] + art_static_dependencies,
@@ -103,6 +109,8 @@ art_cc_binary {
         "libartd",
         "libartd-compiler",
         "libartd-disassembler",
+        "libartd-dexlayout",
+        "libdexfiled",
         "libvixld-arm",
         "libvixld-arm64",
     ] + art_static_dependencies,
